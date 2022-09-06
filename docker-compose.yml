@@ -1,0 +1,70 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3
+    ports:
+      - 5672:5672
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+  client:
+    build:
+      context: ./client
+    environment:
+      - AMQP_HOST=rabbitmq
+      - MONGODB_HOST=mongo
+      - DB_NAME=codesandbox
+      - PROJECTS_COLLECTION=projects
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/app
+    depends_on:
+      - mongo
+      - rabbitmq
+  api:
+    build:
+      context: ./api
+    entrypoint: ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
+    environment:
+      - AMQP_HOST=rabbitmq
+      - MONGODB_HOST=mongo
+      - DB_NAME=codesandbox
+      - PROJECTS_COLLECTION=projects
+    ports:
+      - 3333:3333
+    volumes:
+      - ./api:/app
+    depends_on:
+      - mongo
+      - rabbitmq
+  initializer:
+    build:
+      context: ./initializer
+    entrypoint: ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
+    environment:
+      - AMQP_HOST=rabbitmq
+      - MONGODB_HOST=mongo
+      - DB_NAME=codesandbox
+      - PROJECTS_COLLECTION=projects
+    volumes:
+      - ./initializer:/app
+    depends_on:
+      - mongo
+      - rabbitmq
+  proxy:
+    build:
+      context: ./proxy
+    entrypoint: ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
+    environment:
+      - AMQP_HOST=rabbitmq
+      - MONGODB_HOST=mongo
+      - DB_NAME=codesandbox
+      - PROJECTS_COLLECTION=projects
+    ports:
+      - 3334:3334
+    volumes:
+      - ./proxy:/app
+    depends_on:
+      - mongo
+      - rabbitmq
