@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "path": "api"
+    },
+    {
+      "path": "initializer"
+    },
+    {
+      "path": "proxy"
+    },
+    {
+      "path": "client"
+    },
+    {
+      "path": "template_images"
+    }
+  ],
+  "settings": {}
+}
