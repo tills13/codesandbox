@@ -17,7 +17,7 @@ function LogEntry({ className, message, stream, timestamp }: Props) {
   return (
     <div className={className}>
       <span css={stream === "stderr" && { color: "var(--states-error)" }}>
-        {message}
+        {message || "-"}
       </span>
       <Timestamp>{timestamp}</Timestamp>
     </div>

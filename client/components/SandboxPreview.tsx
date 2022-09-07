@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { Refresh } from "@emotion-icons/material-rounded/Refresh";
 import { useState } from "react";
 import Button from "./Button";
 import ElementGroup from "./ElementGroup";
@@ -6,8 +7,16 @@ import Input from "./Input";
 
 const PROXY_HOST = "localhost:3334";
 
-const OmniboxContainer = styled.div`
+const OmniboxContainer = styled.div``;
+const RefreshIcon = styled(Refresh)`
+  height: var(--height-std);
   padding: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+
+  &:hover {
+    color: var(--text-secondary);
+  }
 `;
 
 type Props = {
@@ -21,12 +30,12 @@ function SandboxPreview({ className, sandboxId }: Props) {
 
   return (
     <div className={className}>
-      <OmniboxContainer>
-        <ElementGroup>
-          <Input css={{ flex: 1 }} value={url} compact />
-          <Button onClick={() => setKey((k) => k++)} compact>
+      <OmniboxContainer css={{ marginBottom: "6px" }}>
+        <ElementGroup gap={6}>
+          <Input css={{ flex: 1 }} value={url} />
+          <RefreshIcon onClick={() => setKey((k) => k + 1)}>
             Refresh
-          </Button>
+          </RefreshIcon>
         </ElementGroup>
       </OmniboxContainer>
 
@@ -38,6 +47,7 @@ function SandboxPreview({ className, sandboxId }: Props) {
 export default styled(SandboxPreview)`
   display: flex;
   flex-direction: column;
+  /* padding: 6px; */
 
   ${OmniboxContainer} {
     flex: 0;
@@ -51,5 +61,7 @@ export default styled(SandboxPreview)`
   iframe {
     flex: 1;
     border: none;
+    background-color: white;
+    border-radius: var(--border-radius);
   }
 `;

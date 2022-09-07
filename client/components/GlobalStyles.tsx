@@ -72,6 +72,8 @@ const baseTheme = css`
     --text-light-bg: var(--colors-grey700);
 
     --border-radius: 4px;
+    --height-std: 40px;
+    --height-compact: 30px;
   }
 `;
 

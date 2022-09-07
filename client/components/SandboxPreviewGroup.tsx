@@ -19,15 +19,21 @@ function SandboxPreviewGroup({ className, sandboxId }: Props) {
 export default styled(SandboxPreviewGroup)`
   display: flex;
   flex-direction: column;
+  padding: 6px;
+  gap: 6px;
+  height: calc(100vh);
 
   ${SandboxPreview} {
-    height: calc(100vh - 200px);
     flex: 1 1 auto;
+    height: 100%;
+    border-radius: var(--border-radius);
   }
 
-  > div:last-child {
+  ${SandboxLogs} {
     height: 200px;
     flex: 0 0 200px;
-    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: var(--border-radius);
   }
 `;

@@ -15,13 +15,12 @@ const Container = styled.div`
   flex-direction: row;
   height: 100%;
 
-  > div:first-child {
-    flex: 1;
+  iframe {
+    border: none;
   }
 
-  > ${SandboxPreview} {
-    height: 100%;
-    flex: 0 0 600px;
+  > * {
+    width: 50%;
   }
 `;
 
@@ -51,20 +50,7 @@ export default function SandboxPage() {
 
   return (
     <Container>
-      <div>
-        <SectionHeader>
-          <h1>
-            {sandboxId} [{sandbox?.status || "UNKNOWN"}]
-          </h1>
-
-          <ElementGroup>
-            <StartSandboxButton sandboxId={sandboxId} />
-            <StopSandboxButton sandboxId={sandboxId} />
-          </ElementGroup>
-        </SectionHeader>
-
-        {sandbox?.lastError && <pre>{sandbox?.lastError}</pre>}
-      </div>
+      <iframe src="http://127.0.0.1:8080" />
       {sandboxId && <SandboxPreviewGroup sandboxId={sandboxId} />}
     </Container>
   );
