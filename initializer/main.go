@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -63,15 +62,27 @@ func main() {
 	defer connection.Close()
 	ch, err := connection.Channel()
 
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := ch.QueueDeclare("initialize", false, true, false, false, nil); err != nil {
+		panic(err)
+	}
+
 	msgs, err := ch.Consume(
-		"initializeProject", // queue
-		"",                  // consumer
-		true,                // auto-ack
-		false,               // exclusive
-		false,               // no-local
-		false,               // no-wait
-		nil,                 // args
+		"initialize", // queue
+		"",           // consumer
+		true,         // auto-ack
+		false,        // exclusive
+		false,        // no-local
+		false,        // no-wait
+		nil,          // args
 	)
+
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println("waiting for messages")
 
@@ -87,23 +98,20 @@ func main() {
 
 		containerConfig := container.Config{
 			Cmd:          []string{"npm", "start"},
-			ExposedPorts: nat.PortSet{"3000/tcp": struct{}{}},
+			ExposedPorts: nat.PortSet{"3000": struct{}{}, "8080": struct{}{}},
 			Image:        fmt.Sprintf("cs_%s", sandbox.Type),
 			WorkingDir:   "/app",
 			Hostname:     sandbox.SandboxId,
 		}
 
-		hostConfig := container.HostConfig{
-			PortBindings: nat.PortMap{"3000/tcp": {{HostPort: "3001"}}},
-		}
-		networkConfig := network.NetworkingConfig{}
-
 		fmt.Println("creating container for", sandbox.SandboxId)
 		res, err := cli.ContainerCreate(
 			ctx,
 			&containerConfig,
-			&hostConfig,
-			&networkConfig,
+			&container.HostConfig{
+				PortBindings: nat.PortMap{"8080/tcp": {{HostPort: "8080"}}},
+			},
+			nil,
 			nil,
 			sandbox.SandboxId,
 		)
