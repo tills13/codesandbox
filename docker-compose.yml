@@ -1,3 +1,8 @@
+version: "3"
+
+volumes:
+  deps:
+
 services:
   rabbitmq:
     image: rabbitmq:3
@@ -19,13 +24,15 @@ services:
       - 3000:3000
     volumes:
       - ./client:/app
+      - deps:/app/node_modules
     depends_on:
       - mongo
       - rabbitmq
   api:
     build:
       context: ./api
-    entrypoint: ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
+    entrypoint:
+      ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
     environment:
       - AMQP_HOST=rabbitmq
       - MONGODB_HOST=mongo
@@ -41,7 +48,8 @@ services:
   initializer:
     build:
       context: ./initializer
-    entrypoint: ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
+    entrypoint:
+      ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
     environment:
       - AMQP_HOST=rabbitmq
       - MONGODB_HOST=mongo
@@ -55,7 +63,8 @@ services:
   proxy:
     build:
       context: ./proxy
-    entrypoint: ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
+    entrypoint:
+      ["reflex", "-d", "none", "-s", "-g", "*.go", "--", "go", "run", "."]
     environment:
       - AMQP_HOST=rabbitmq
       - MONGODB_HOST=mongo
