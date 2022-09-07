@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -8,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -58,6 +58,32 @@ func appendHostToXForwardHeader(header http.Header, host string) {
 	header.Set("X-Forwarded-For", host)
 }
 
+var defaultHtmlResponseTemplate = []byte(`
+	<html>
+		<head>
+			<style>
+				body {
+					background-color: none;
+					font-family: monospace;
+					color: white;
+				}
+			</style>
+		</head>
+		<body>
+			Loading...
+
+			<script type="text/javascript">
+				setTimeout(() => { location.reload() }, 1000)
+			</script>
+		</body>
+	</html>
+`)
+
+func writeDefaultHtmlResponse(w http.ResponseWriter) {
+	w.WriteHeader(200)
+	w.Write(defaultHtmlResponseTemplate)
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -86,11 +112,8 @@ func main() {
 	http.HandleFunc("/p/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("[info]", r.Method, r.URL.Path)
 
-		if r.Method != "GET" {
-			// return
-		}
-
-		sandboxId := r.URL.Path[len("/p/"):]
+		routeUrl := r.URL.Path[len("/p/"):]
+		sandboxId, remainingPath, _ := strings.Cut(routeUrl, "/")
 
 		d := collection.FindOne(context.Background(), bson.D{{"sandboxId", sandboxId}})
 
@@ -107,11 +130,17 @@ func main() {
 		if sandbox.Status != "STARTED" {
 			url, _ := url.Parse("http://api:3333/api/sandbox/" + sandboxId + "/start")
 			client.Do(&http.Request{Method: "POST", URL: url})
-
-			time.Sleep(5 * time.Second)
+			writeDefaultHtmlResponse(w)
+			return
 		}
 
-		url, _ := url.Parse("http://" + sandboxId + ":3000")
+		rawUrl := "http://" + sandboxId + ":3000"
+
+		if len(remainingPath) != 0 {
+			rawUrl = rawUrl + "/" + remainingPath
+		}
+
+		url, _ := url.Parse(rawUrl)
 
 		resp, err := client.Do(&http.Request{
 			Method: "GET",
@@ -120,7 +149,7 @@ func main() {
 
 		if err != nil {
 			fmt.Println(err)
-			http.Error(w, "Server Error", http.StatusInternalServerError)
+			writeDefaultHtmlResponse(w)
 			return
 		}
 
@@ -130,7 +159,20 @@ func main() {
 		copyHeader(w.Header(), resp.Header)
 
 		w.WriteHeader(resp.StatusCode)
-		io.Copy(w, resp.Body)
+
+		var buffer bytes.Buffer
+		io.Copy(&buffer, resp.Body)
+
+		proto := "http"
+
+		if r.TLS != nil {
+			proto = "https"
+		}
+
+		formattedResponse := strings.ReplaceAll(buffer.String(), `href="/`, fmt.Sprintf(`href="%s://%s/p/%s/`, proto, r.Host, sandboxId))
+		formattedResponse = strings.ReplaceAll(formattedResponse, `src="/`, fmt.Sprintf(`src="%s://%s/p/%s/`, proto, r.Host, sandboxId))
+
+		w.Write([]byte(formattedResponse))
 	})
 
 	fmt.Println("listening on :3334")
