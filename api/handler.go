@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,7 +9,18 @@ import (
 	"strings"
 )
 
+type ApiHandlers interface {
+	Create(ctx context.Context, cfg CreateConfig) (Sandbox, error)
+	Console(ctx context.Context, sandboxId string) (ConsoleResponse, error)
+	Handler(w http.ResponseWriter, r *http.Request)
+	Sandbox(ctx context.Context, sandboxId string) (Sandbox, error)
+	Start(ctx context.Context, sandboxId string) error
+	Stop(ctx context.Context, sandboxId string) error
+}
+
 func (svc ApiService) Handler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
 	method := r.Method
 
 	fmt.Println("[info]", method, r.URL.Path)
@@ -46,9 +58,9 @@ func (svc ApiService) Handler(w http.ResponseWriter, r *http.Request) {
 
 	if method == "GET" {
 		if endpoint == "/" {
-			result, err = svc.Sandbox(sandboxId)
+			result, err = svc.Sandbox(ctx, sandboxId)
 		} else if endpoint == "console" {
-			result, err = svc.Console(sandboxId)
+			result, err = svc.Console(ctx, sandboxId)
 		} else {
 			statusCode = 404
 			err = fmt.Errorf("Not Found")
@@ -59,14 +71,14 @@ func (svc ApiService) Handler(w http.ResponseWriter, r *http.Request) {
 
 			if bodyBytes, err := ioutil.ReadAll(r.Body); err == nil {
 				if err = json.Unmarshal(bodyBytes, &createConfig); err == nil {
-					result, err = svc.Create(createConfig)
+					result, err = svc.Create(ctx, createConfig)
 				}
 			}
 
 		} else if endpoint == "start" {
-			err = svc.Start(sandboxId)
+			err = svc.Start(ctx, sandboxId)
 		} else if endpoint == "stop" {
-			err = svc.Stop(sandboxId)
+			err = svc.Stop(ctx, sandboxId)
 		} else {
 			statusCode = 404
 			err = fmt.Errorf("Not Found")

@@ -12,15 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type ApiHandlers interface {
-	Create(cfg CreateConfig) (Sandbox, error)
-	Console(sandboxId string) (ConsoleResponse, error)
-	Handler(w http.ResponseWriter, r *http.Request)
-	Sandbox(sandboxId string) (Sandbox, error)
-	Start(sandboxId string) error
-	Stop(sandboxId string) error
-}
-
 type ApiService struct {
 	DockerClient *client.Client
 	MongoClient  *mongo.Client

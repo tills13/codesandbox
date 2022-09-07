@@ -64,8 +64,8 @@ func combineStreams(s1 []ConsoleLogEntry, s2 []ConsoleLogEntry) []ConsoleLogEntr
 	return combinedStreams
 }
 
-func (svc ApiService) Console(sandboxId string) (ConsoleResponse, error) {
-	reader, err := svc.DockerClient.ContainerLogs(context.Background(), sandboxId, types.ContainerLogsOptions{
+func (svc ApiService) Console(ctx context.Context, sandboxId string) (ConsoleResponse, error) {
+	reader, err := svc.DockerClient.ContainerLogs(ctx, sandboxId, types.ContainerLogsOptions{
 		ShowStdout: true,
 		Timestamps: true,
 		ShowStderr: true,

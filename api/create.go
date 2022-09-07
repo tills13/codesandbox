@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"sort"
 	"strings"
@@ -24,7 +25,7 @@ type CreateConfig struct {
 	Type string `json:"type"`
 }
 
-func (svc ApiService) Create(config CreateConfig) (Sandbox, error) {
+func (svc ApiService) Create(ctx context.Context, config CreateConfig) (Sandbox, error) {
 	sandboxId := generateId()
 
 	sandbox := Sandbox{
@@ -33,19 +34,30 @@ func (svc ApiService) Create(config CreateConfig) (Sandbox, error) {
 		Type:      config.Type,
 	}
 
-	if _, err := svc.SandboxesCollection().InsertOne(context.Background(), sandbox); err != nil {
+	if _, err := svc.SandboxesCollection().InsertOne(ctx, sandbox); err != nil {
+		fmt.Println(err)
+
 		return Sandbox{}, err
 	}
 
 	if sandboxJsonBytes, err := json.Marshal(sandbox); err != nil {
+		fmt.Println(err)
+
 		return Sandbox{}, err
 	} else {
-		err = svc.AmqpChannel.Publish("", "initializeProject", false, false, amqp091.Publishing{
+		q, err := svc.AmqpChannel.QueueDeclare("initialize", false, true, false, false, nil)
+
+		if err != nil {
+			panic(err)
+		}
+
+		err = svc.AmqpChannel.PublishWithContext(ctx, "", q.Name, false, false, amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        sandboxJsonBytes,
 		})
 
 		if err != nil {
+			fmt.Println(err)
 			return Sandbox{}, err
 		}
 	}

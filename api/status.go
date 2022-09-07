@@ -9,16 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (svc ApiService) Start(sandboxId string) error {
+func (svc ApiService) Start(ctx context.Context, sandboxId string) error {
 	fmt.Println("starting", sandboxId)
-	ctx := context.Background()
 
 	if err := svc.DockerClient.ContainerStart(ctx, sandboxId, types.ContainerStartOptions{}); err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	if err := svc.DockerClient.NetworkConnect(ctx, "406acb428351", sandboxId, nil); err != nil {
+	if err := svc.DockerClient.NetworkConnect(ctx, "codesandbox_default", sandboxId, nil); err != nil {
 		fmt.Println(err)
 		return err
 	}
@@ -32,8 +31,7 @@ func (svc ApiService) Start(sandboxId string) error {
 	return nil
 }
 
-func (svc ApiService) Stop(sandboxId string) error {
-	ctx := context.Background()
+func (svc ApiService) Stop(ctx context.Context, sandboxId string) error {
 	timeout := 5 * time.Second
 
 	if err := svc.DockerClient.ContainerStop(ctx, sandboxId, &timeout); err != nil {
