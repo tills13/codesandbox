@@ -1,7 +1,13 @@
+import styled from "@emotion/styled";
 import Router from "next/router";
 import { useCallback } from "react";
 import NewSandboxForm from "../components/NewSandboxForm";
+import Playground from "../components/Playground";
 import { SandboxDocument } from "../types";
+
+const Wrapper = styled.div`
+  height: 100%;
+`;
 
 export default function Index() {
   const onCreateSandbox = useCallback((sandbox: SandboxDocument) => {
@@ -12,8 +18,9 @@ export default function Index() {
   }, []);
 
   return (
-    <div>
-      <NewSandboxForm onSuccess={onCreateSandbox} />
-    </div>
+    <Playground>
+      <div>.</div>
+      {/* <NewSandboxForm onSuccess={onCreateSandbox} /> */}
+    </Playground>
   );
 }

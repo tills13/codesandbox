@@ -74,6 +74,7 @@ const baseTheme = css`
     --border-radius: 4px;
     --height-std: 40px;
     --height-compact: 30px;
+    --padding-std: 6px;
   }
 `;
 
@@ -119,7 +120,8 @@ function GlobalStyles() {
             box-sizing: border-box;
           }
 
-          #root {
+          #root,
+          #__next {
             height: 100%;
           }
         `}

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import { useEffect, useReducer, useRef } from "react";
-import useSwr from "swr";
+import { useEffect, useRef } from "react";
+import useFetch from "../hooks/useFetch";
 import LogEntry from "./LogEntry";
 
 export type LogEntry = {
@@ -24,7 +24,7 @@ async function fetchLogs(sandboxId: string) {
 }
 
 function useLogs(sandboxId: string) {
-  return useSwr(["sandbox", sandboxId, "logs"], (_, pId) => fetchLogs(pId), {
+  return useFetch(["sandbox", sandboxId, "logs"], (_, pId) => fetchLogs(pId), {
     refreshInterval: 10,
   });
 }
@@ -36,7 +36,7 @@ type Props = {
 
 function SandboxLogs({ className, sandboxId }: Props) {
   const ref = useRef<HTMLDivElement>(null!);
-  const { data: logs = [] } = useLogs(sandboxId);
+  const { value: logs = [] } = useLogs(sandboxId);
 
   useEffect(() => {
     ref.current.scrollTo({ top: ref.current.scrollHeight });

@@ -61,6 +61,7 @@ func (svc ApiService) Handler(w http.ResponseWriter, r *http.Request) {
 			result, err = svc.Sandbox(ctx, sandboxId)
 		} else if endpoint == "console" {
 			result, err = svc.Console(ctx, sandboxId)
+		} else if endpoint == "playground" {
 		} else {
 			statusCode = 404
 			err = fmt.Errorf("Not Found")

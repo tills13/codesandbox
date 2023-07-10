@@ -32,7 +32,7 @@ function SandboxPreview({ className, sandboxId }: Props) {
     <div className={className}>
       <OmniboxContainer css={{ marginBottom: "6px" }}>
         <ElementGroup gap={6}>
-          <Input css={{ flex: 1 }} value={url} />
+          <Input css={{ flex: 1 }} defaultValue={url} />
           <RefreshIcon onClick={() => setKey((k) => k + 1)}>
             Refresh
           </RefreshIcon>
